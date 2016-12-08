@@ -8,7 +8,9 @@ import java.lang.annotation.Target;
 
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.TYPE)
-public @interface Cli
+@Target(ElementType.METHOD)
+public @interface CommandMapping
 {
+	String name();
+	String description() default "";
 }

@@ -2,13 +2,15 @@ package net.nlacombe.jcli.impl;
 
 import io.github.lukehutch.fastclasspathscanner.FastClasspathScanner;
 import net.nlacombe.jcli.api.Argument;
-import net.nlacombe.jcli.api.Cli;
-import net.nlacombe.jcli.api.Command;
-import net.nlacombe.jcli.impl.domain.CommandDefinition;
+import net.nlacombe.jcli.api.CliMapping;
+import net.nlacombe.jcli.api.CommandMapping;
+import net.nlacombe.jcli.impl.domain.Cli;
+import net.nlacombe.jcli.impl.domain.Command;
 import org.apache.commons.lang3.StringUtils;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -17,38 +19,86 @@ import java.util.stream.Collectors;
 
 public class CommandScanner
 {
-	private Map<String, CommandDefinition> commandDefinitions;
-
-	public CommandScanner()
+	public Cli getCliFromBasePackage(String basePackage)
 	{
-		commandDefinitions = new HashMap<>();
+		Cli cli = new Cli();
+
+		FastClasspathScanner classpathScanner = new FastClasspathScanner(basePackage);
+		classpathScanner.matchClassesWithAnnotation(CliMapping.class, cliMappingClass -> addCommandsToCli(cli, cliMappingClass)).scan();
+
+		return cli;
 	}
 
-	public Map<String, CommandDefinition> getCommandsFromBasePackage(String basePackage)
+	private void addCommandsToCli(Cli cli, Class<?> cliMappingClass)
 	{
-		FastClasspathScanner fastClasspathScanner = new FastClasspathScanner(basePackage);
-		fastClasspathScanner.matchClassesWithAnnotation(Cli.class, this::loadCliClass).scan();
-
-		return commandDefinitions;
-	}
-
-	private void loadCliClass(Class<?> cliClass)
-	{
-		if (!hasNoParamConstructor(cliClass))
+		if (!hasNoParamConstructor(cliMappingClass))
 			return;
 
-		Arrays.stream(cliClass.getMethods())
-				.filter(this::isCommandWithValidName)
-				.forEach(this::addToCommandDefinitions);
+		cli.addCommands(getCommands(cliMappingClass));
 	}
 
-	private void addToCommandDefinitions(Method method)
+	private List<Command> getCommands(Class<?> cliMappingClass)
 	{
-		Command command = method.getAnnotation(Command.class);
-		List<String> argumentNames = getArgumentNames(method);
-		CommandDefinition commandDefinition = new CommandDefinition(command.name(), command.description(), method, argumentNames);
+		return new ArrayList<>(getCommandsByMethodSignature(cliMappingClass).values());
+	}
 
-		commandDefinitions.put(commandDefinition.getName(), commandDefinition);
+	private Map<String, Command> getCommandsByMethodSignature(Class<?> cliMappingClass)
+	{
+		Map<String, Command> parentCommands = getParentCommandsByMethodSignature(cliMappingClass);
+		Map<String, Command> currentCommands = getCommandsByMethodSignature(parentCommands, cliMappingClass.getMethods());
+		Map<String, Command> allCommands = new HashMap<>(parentCommands.size() + currentCommands.size());
+
+		allCommands.putAll(parentCommands);
+		allCommands.putAll(currentCommands);
+
+		return allCommands;
+	}
+
+	private Map<String, Command> getParentCommandsByMethodSignature(Class<?> cliMappingClass)
+	{
+		Map<String, Command> allParentsCommands = new HashMap<>();
+
+		Arrays.stream(cliMappingClass.getInterfaces()).forEach(cliClass ->
+		{
+			Map<String, Command> currentParentCommands = getCommandsByMethodSignature(cliClass);
+			allParentsCommands.putAll(currentParentCommands);
+		});
+
+		return allParentsCommands;
+	}
+
+	private Map<String, Command> getCommandsByMethodSignature(Map<String, Command> parentCommands, Method[] methods)
+	{
+		Map<String, Command> commands = new HashMap<>();
+
+		Arrays.stream(methods)
+				.forEach(method ->
+				{
+					String methodSignature = getMethodSignature(method);
+
+					if (hasCommandMappingWithValidName(method))
+						commands.put(methodSignature, getCommand(method));
+					else if (parentCommands.containsKey(methodSignature))
+					{
+						Command parentCommand = parentCommands.get(methodSignature);
+						parentCommand.setMethod(method);
+						commands.put(methodSignature, parentCommand);
+					}
+				});
+
+		return commands;
+	}
+
+	private String getMethodSignature(Method method)
+	{
+		return method.getName() + "(" + StringUtils.join(method.getParameterTypes(), ",") + ")";
+	}
+
+	private Command getCommand(Method method)
+	{
+		CommandMapping commandMapping = method.getAnnotation(CommandMapping.class);
+		List<String> argumentNames = getArgumentNames(method);
+		return new Command(commandMapping.name(), commandMapping.description(), method, argumentNames);
 	}
 
 	private List<String> getArgumentNames(Method method)
@@ -68,11 +118,11 @@ public class CommandScanner
 			return parameter.getName();
 	}
 
-	private boolean isCommandWithValidName(Method method)
+	private boolean hasCommandMappingWithValidName(Method method)
 	{
-		Command command = method.getAnnotation(Command.class);
+		CommandMapping commandMapping = method.getAnnotation(CommandMapping.class);
 
-		return command != null && StringUtils.isNotBlank(command.name());
+		return commandMapping != null && StringUtils.isNotBlank(commandMapping.name());
 	}
 
 	private boolean hasNoParamConstructor(Class<?> clazz)

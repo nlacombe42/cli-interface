@@ -3,14 +3,14 @@ package net.nlacombe.jcli.impl.domain;
 import java.lang.reflect.Method;
 import java.util.List;
 
-public class CommandDefinition
+public class Command
 {
 	private String name;
 	private String description;
 	private Method method;
 	private List<String> argumentNames;
 
-	public CommandDefinition(String name, String description, Method method, List<String> argumentNames)
+	public Command(String name, String description, Method method, List<String> argumentNames)
 	{
 		this.name = name;
 		this.description = description;
@@ -31,6 +31,11 @@ public class CommandDefinition
 	public Method getMethod()
 	{
 		return method;
+	}
+
+	public void setMethod(Method method)
+	{
+		this.method = method;
 	}
 
 	public List<String> getArgumentNames()

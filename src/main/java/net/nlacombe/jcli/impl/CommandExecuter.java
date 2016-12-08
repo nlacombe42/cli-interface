@@ -1,68 +1,60 @@
 package net.nlacombe.jcli.impl;
 
-import net.nlacombe.jcli.impl.domain.CommandDefinition;
+import net.nlacombe.jcli.impl.domain.Cli;
+import net.nlacombe.jcli.impl.domain.Command;
 import net.nlacombe.jcli.impl.exception.CliUsageException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Method;
 import java.util.List;
-import java.util.Map;
 
 public class CommandExecuter
 {
 	private static final Logger logger = LoggerFactory.getLogger(CommandExecuter.class);
 
-	public void executeCommand(Map<String, CommandDefinition> commandDefinitions, List<String> arguments)
+	public void executeCommand(Cli cli, List<String> arguments)
 	{
 		try
 		{
 			validateArgumentContainsCommand(arguments);
 
 			String commandName = arguments.get(0);
-			CommandDefinition commandDefinition = getCommandDefinition(commandDefinitions, commandName);
+			Command command = cli.getCommandByName(commandName);
+			validateCommandExists(commandName, command);
 
 			arguments.remove(0);
-			executeCommand(commandDefinition, arguments);
+			executeCommand(command, arguments);
 		}
 		catch (CliUsageException cliUsageException)
 		{
-			printErrorAndHelp(commandDefinitions, cliUsageException);
+			printErrorAndHelp(cli, cliUsageException);
 		}
 	}
 
-	private void printErrorAndHelp(Map<String, CommandDefinition> commandDefinitions, CliUsageException cliUsageException)
+	private void printErrorAndHelp(Cli cli, CliUsageException cliUsageException)
 	{
 		logger.error(cliUsageException.getMessage() + "\r\n");
 
-		printHelp(commandDefinitions, cliUsageException);
+		printHelp(cli, cliUsageException);
 	}
 
-	private void printHelp(Map<String, CommandDefinition> commandDefinitions, CliUsageException cliUsageException)
+	private void printHelp(Cli cli, CliUsageException cliUsageException)
 	{
-		CommandDefinition commandDefinition = cliUsageException.getCommandDefinition();
+		Command command = cliUsageException.getCommand();
 		HelpCommand helpCommand = new HelpCommand();
 
-		if (commandDefinition != null)
-			helpCommand.printHelp(commandDefinition);
+		if (command != null)
+			helpCommand.printHelp(command);
 		else
-			helpCommand.printHelp(commandDefinitions);
+			helpCommand.printHelp(cli);
 	}
 
-	private CommandDefinition getCommandDefinition(Map<String, CommandDefinition> commandDefinitions, String commandName)
+	private void executeCommand(Command command, List<String> commandArguments)
 	{
-		CommandDefinition commandDefinition = commandDefinitions.get(commandName);
+		Method commandMethod = command.getMethod();
 
-		validateCommandExists(commandName, commandDefinition);
-
-		return commandDefinition;
-	}
-
-	private void executeCommand(CommandDefinition commandDefinition, List<String> commandArguments)
-	{
-		Method commandMethod = commandDefinition.getMethod();
-
-		validateEqualNumberOfArgumentAndParameter(commandDefinition, commandArguments.size(), commandMethod.getParameterCount());
+		validateEqualNumberOfArgumentAndParameter(command, commandArguments.size(), commandMethod.getParameterCount());
 
 		try
 		{
@@ -77,12 +69,12 @@ public class CommandExecuter
 		}
 	}
 
-	private void validateEqualNumberOfArgumentAndParameter(CommandDefinition commandDefinition, Integer numberOfArguments, Integer numberOfParameters)
+	private void validateEqualNumberOfArgumentAndParameter(Command command, Integer numberOfArguments, Integer numberOfParameters)
 	{
 		if (numberOfArguments < numberOfParameters)
-			throw new CliUsageException(commandDefinition, "not enough argument(s).");
+			throw new CliUsageException(command, "not enough argument(s).");
 		else if (numberOfArguments > numberOfParameters)
-			throw new CliUsageException(commandDefinition, "too much argument(s).");
+			throw new CliUsageException(command, "too much argument(s).");
 	}
 
 	private void validateArgumentContainsCommand(List<String> arguments)
@@ -91,9 +83,9 @@ public class CommandExecuter
 			throw new CliUsageException("no command specified.");
 	}
 
-	private void validateCommandExists(String commandName, CommandDefinition commandDefinition)
+	private void validateCommandExists(String commandName, Command command)
 	{
-		if (commandDefinition == null)
+		if (command == null)
 			throw new CliUsageException("no command named \"" + commandName + "\"");
 	}
 }

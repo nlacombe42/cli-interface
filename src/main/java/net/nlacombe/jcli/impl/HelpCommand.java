@@ -1,6 +1,7 @@
 package net.nlacombe.jcli.impl;
 
-import net.nlacombe.jcli.impl.domain.CommandDefinition;
+import net.nlacombe.jcli.impl.domain.Cli;
+import net.nlacombe.jcli.impl.domain.Command;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -14,37 +15,39 @@ public class HelpCommand
 {
 	private static final Logger logger = LoggerFactory.getLogger(HelpCommand.class);
 
-	public void printHelp(Map<String, CommandDefinition> commandDefinitions)
+	public void printHelp(Cli cli)
 	{
-		logger.info(getHelpText(commandDefinitions));
+		logger.info(getHelpText(cli));
 	}
 
-	public void printHelp(CommandDefinition commandDefinition)
+	public void printHelp(Command command)
 	{
-		logger.info("Usage: \r\n" + getCommandHelpText(commandDefinition));
+		logger.info("Usage: \r\n" + getCommandHelpText(command));
 	}
 
-	private String getHelpText(Map<String, CommandDefinition> commandDefinitions)
+	private String getHelpText(Cli cli)
 	{
 		StringBuilder helpText = new StringBuilder();
 
 		helpText.append("Usage: COMMAND [...]\r\n\r\n");
 		helpText.append("COMMAND:\r\n");
 
-		commandDefinitions.keySet().stream()
+		Map<String, Command> commandsByName = cli.getCommandsByName();
+
+		commandsByName.keySet().stream()
 				.sorted()
-				.forEach(commandName -> helpText.append(getCommandHelpText(commandDefinitions.get(commandName))));
+				.forEach(commandName -> helpText.append(getCommandHelpText(commandsByName.get(commandName))));
 
 		return helpText.toString();
 	}
 
-	private String getCommandHelpText(CommandDefinition commandDefinition)
+	private String getCommandHelpText(Command command)
 	{
-		String description = commandDefinition.getDescription();
+		String description = command.getDescription();
 
 		String commandHelpText = "";
 
-		commandHelpText += getCommandDeclarationLine(commandDefinition);
+		commandHelpText += getCommandDeclarationLine(command);
 
 		if (StringUtils.isNotBlank(description))
 			commandHelpText += "\t\t" + description + "\r\n";
@@ -54,13 +57,13 @@ public class HelpCommand
 		return commandHelpText;
 	}
 
-	private String getCommandDeclarationLine(CommandDefinition commandDefinition)
+	private String getCommandDeclarationLine(Command command)
 	{
-		List<String> argumentNames = commandDefinition.getArgumentNames();
+		List<String> argumentNames = command.getArgumentNames();
 
 		String commandDeclaration = "";
 
-		commandDeclaration += "\t" + commandDefinition.getName() + " ";
+		commandDeclaration += "\t" + command.getName() + " ";
 
 		if (CollectionUtils.isNotEmpty(argumentNames))
 			commandDeclaration += argumentNames.stream().map(String::toUpperCase).collect(Collectors.joining(" "));

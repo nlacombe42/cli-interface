@@ -1,10 +1,10 @@
 package net.nlacombe.jcli.impl.exception;
 
-import net.nlacombe.jcli.impl.domain.CommandDefinition;
+import net.nlacombe.jcli.impl.domain.Command;
 
 public class CliUsageException extends RuntimeException
 {
-	private CommandDefinition commandDefinition;
+	private Command command;
 	private String shortMessage;
 
 	public CliUsageException(String shortMessage)
@@ -12,9 +12,9 @@ public class CliUsageException extends RuntimeException
 		this.shortMessage = shortMessage;
 	}
 
-	public CliUsageException(CommandDefinition commandDefinition, String shortMessage)
+	public CliUsageException(Command command, String shortMessage)
 	{
-		this.commandDefinition = commandDefinition;
+		this.command = command;
 		this.shortMessage = shortMessage;
 	}
 
@@ -23,16 +23,16 @@ public class CliUsageException extends RuntimeException
 	{
 		String message = "Error: ";
 
-		if (commandDefinition != null)
-			message += "error using command \"" + commandDefinition.getName() + "\" ";
+		if (command != null)
+			message += "error using command \"" + command.getName() + "\" ";
 
 		message += shortMessage;
 
 		return message;
 	}
 
-	public CommandDefinition getCommandDefinition()
+	public Command getCommand()
 	{
-		return commandDefinition;
+		return command;
 	}
 }
