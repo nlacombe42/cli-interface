@@ -2,20 +2,26 @@ package net.nlacombe.jcli.impl.domain;
 
 import java.lang.reflect.Method;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class Command
 {
 	private String name;
 	private String description;
 	private Method method;
-	private List<String> argumentNames;
+	private List<Parameter> parameters;
 
-	public Command(String name, String description, Method method, List<String> argumentNames)
+	public Command(String name, String description, Method method, List<Parameter> parameters)
 	{
 		this.name = name;
 		this.description = description;
 		this.method = method;
-		this.argumentNames = argumentNames;
+		this.parameters = parameters;
+	}
+
+	public List<String> getParameterNames()
+	{
+		return parameters.stream().map(Parameter::getName).collect(Collectors.toList());
 	}
 
 	public String getName()
@@ -38,8 +44,8 @@ public class Command
 		this.method = method;
 	}
 
-	public List<String> getArgumentNames()
+	public List<Parameter> getParameters()
 	{
-		return argumentNames;
+		return parameters;
 	}
 }

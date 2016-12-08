@@ -2,6 +2,7 @@ package net.nlacombe.jcli.impl;
 
 import net.nlacombe.jcli.impl.domain.Cli;
 import net.nlacombe.jcli.impl.domain.Command;
+import net.nlacombe.jcli.impl.domain.Parameter;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -36,7 +37,8 @@ public class HelpCommand
 
 		commandsByName.keySet().stream()
 				.sorted()
-				.forEach(commandName -> helpText.append(getCommandHelpText(commandsByName.get(commandName))));
+				.map(commandsByName::get)
+				.forEach(command -> helpText.append(getCommandHelpText(command)));
 
 		return helpText.toString();
 	}
@@ -45,21 +47,37 @@ public class HelpCommand
 	{
 		String description = command.getDescription();
 
-		String commandHelpText = "";
+		StringBuilder helpText = new StringBuilder();
 
-		commandHelpText += getCommandDeclarationLine(command);
+		helpText.append(getCommandDeclarationLine(command));
+		helpText.append(getParametersHelpText(command.getParameters()));
 
 		if (StringUtils.isNotBlank(description))
-			commandHelpText += "\t\t" + description + "\r\n";
+			helpText.append(String.format("\t\t%s\r\n", description));
 
-		commandHelpText += "\r\n";
+		helpText.append("\r\n");
 
-		return commandHelpText;
+		return helpText.toString();
+	}
+
+	private String getParametersHelpText(List<Parameter> parameters)
+	{
+		StringBuilder helpText = new StringBuilder();
+
+		parameters.stream()
+				.filter(parameter -> StringUtils.isNotBlank(parameter.getDescription()))
+				.sorted()
+				.forEach(parameter ->
+						helpText.append(String.format("\t\t%s %s\r\n", parameter.getName().toUpperCase(), parameter.getDescription())));
+
+		helpText.append("\r\n");
+
+		return helpText.toString();
 	}
 
 	private String getCommandDeclarationLine(Command command)
 	{
-		List<String> argumentNames = command.getArgumentNames();
+		List<String> argumentNames = command.getParameterNames();
 
 		String commandDeclaration = "";
 

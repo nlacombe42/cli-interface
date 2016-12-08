@@ -1,13 +1,15 @@
 package test.cli;
 
-import net.nlacombe.jcli.api.Argument;
 import net.nlacombe.jcli.api.CommandMapping;
+import net.nlacombe.jcli.api.ParameterMapping;
 
 public interface TestCli
 {
-	@CommandMapping(name = "add", description = "adds stuff")
-	void add(@Argument("addArg1") String addArg1, @Argument("bob") String addArg2);
+	@CommandMapping(name = "aaaa", description = "Initialize app")
+	void init(@ParameterMapping(value = "username", description = "username to use in subsequent commands") String username,
+			  @ParameterMapping(value = "pass", description = "password") String pass);
 
-	@CommandMapping(name = "min", description = "substracts stuff")
-	void min(@Argument("addArg1") String addArg1, @Argument("addArg2") String addArg2);
+	@CommandMapping(description = "Adds 2 numbers")
+	void add(@ParameterMapping("number1") String number1,
+			  @ParameterMapping("number2") String number2);
 }

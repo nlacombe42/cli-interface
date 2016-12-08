@@ -11,6 +11,6 @@ import java.lang.annotation.Target;
 @Target(ElementType.METHOD)
 public @interface CommandMapping
 {
-	String name();
+	String name() default "";
 	String description() default "";
 }

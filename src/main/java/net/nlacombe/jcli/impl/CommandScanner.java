@@ -1,7 +1,6 @@
 package net.nlacombe.jcli.impl;
 
 import io.github.lukehutch.fastclasspathscanner.FastClasspathScanner;
-import net.nlacombe.jcli.api.Argument;
 import net.nlacombe.jcli.api.CliMapping;
 import net.nlacombe.jcli.api.CommandMapping;
 import net.nlacombe.jcli.impl.domain.Cli;
@@ -9,13 +8,11 @@ import net.nlacombe.jcli.impl.domain.Command;
 import org.apache.commons.lang3.StringUtils;
 
 import java.lang.reflect.Method;
-import java.lang.reflect.Parameter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 public class CommandScanner
 {
@@ -77,7 +74,7 @@ public class CommandScanner
 					String methodSignature = getMethodSignature(method);
 
 					if (hasCommandMappingWithValidName(method))
-						commands.put(methodSignature, getCommand(method));
+						commands.put(methodSignature, CommandFactory.getCommand(method));
 					else if (parentCommands.containsKey(methodSignature))
 					{
 						Command parentCommand = parentCommands.get(methodSignature);
@@ -94,35 +91,11 @@ public class CommandScanner
 		return method.getName() + "(" + StringUtils.join(method.getParameterTypes(), ",") + ")";
 	}
 
-	private Command getCommand(Method method)
-	{
-		CommandMapping commandMapping = method.getAnnotation(CommandMapping.class);
-		List<String> argumentNames = getArgumentNames(method);
-		return new Command(commandMapping.name(), commandMapping.description(), method, argumentNames);
-	}
-
-	private List<String> getArgumentNames(Method method)
-	{
-		return Arrays.stream(method.getParameters())
-				.map(this::getParameterName)
-				.collect(Collectors.toList());
-	}
-
-	private String getParameterName(Parameter parameter)
-	{
-		Argument argument = parameter.getAnnotation(Argument.class);
-
-		if (argument != null && StringUtils.isNotBlank(argument.value()))
-			return argument.value();
-		else
-			return parameter.getName();
-	}
-
 	private boolean hasCommandMappingWithValidName(Method method)
 	{
 		CommandMapping commandMapping = method.getAnnotation(CommandMapping.class);
 
-		return commandMapping != null && StringUtils.isNotBlank(commandMapping.name());
+		return commandMapping != null;
 	}
 
 	private boolean hasNoParamConstructor(Class<?> clazz)
