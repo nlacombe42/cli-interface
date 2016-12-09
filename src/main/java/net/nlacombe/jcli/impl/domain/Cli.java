@@ -1,5 +1,6 @@
 package net.nlacombe.jcli.impl.domain;
 
+import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -7,6 +8,7 @@ import java.util.Map;
 public class Cli
 {
 	private Map<String, Command> commands;
+	private Method exceptionHandler;
 
 	public Cli()
 	{
@@ -31,5 +33,15 @@ public class Cli
 	public Map<String, Command> getCommandsByName()
 	{
 		return commands;
+	}
+
+	public Method getExceptionHandler()
+	{
+		return exceptionHandler;
+	}
+
+	public void setExceptionHandler(Method exceptionHandler)
+	{
+		this.exceptionHandler = exceptionHandler;
 	}
 }

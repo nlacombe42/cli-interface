@@ -6,6 +6,7 @@ import net.nlacombe.jcli.impl.exception.CliUsageException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -27,7 +28,7 @@ public class CommandExecuter
 			validateCommandExists(commandName, command);
 
 			arguments.remove(0);
-			executeCommand(command, arguments);
+			executeCommand(cli, command, arguments);
 		}
 		catch (CliUsageException cliUsageException)
 		{
@@ -53,7 +54,7 @@ public class CommandExecuter
 			helpCommand.printHelp(cli);
 	}
 
-	private void executeCommand(Command command, List<String> commandArguments)
+	private void executeCommand(Cli cli, Command command, List<String> commandArguments)
 	{
 		Method commandMethod = command.getMethod();
 
@@ -61,16 +62,44 @@ public class CommandExecuter
 
 		try
 		{
-			Class<?> cliClass = commandMethod.getDeclaringClass();
-			Object cliClassInstance = cliClass.getConstructor().newInstance();
-			List<Object> convertedArguments = convertArguments(commandMethod.getParameterTypes(), commandArguments);
-
-			commandMethod.invoke(cliClassInstance, convertedArguments.toArray());
+			convertArgumentsAndInvokeMethod(cli, commandMethod, commandArguments);
 		}
 		catch (Exception e)
 		{
 			throw new RuntimeException("Error: unknown error executing command.", e);
 		}
+	}
+
+	private void convertArgumentsAndInvokeMethod(Cli cli, Method commandMethod, List<String> commandArguments) throws NoSuchMethodException, IllegalAccessException, InstantiationException, InvocationTargetException
+	{
+		try
+		{
+			List<Object> convertedArguments = convertArguments(commandMethod.getParameterTypes(), commandArguments);
+
+			instanciateClassAndInvokeMethod(commandMethod, convertedArguments.toArray());
+		}
+		catch (InvocationTargetException exception)
+		{
+			handleInvocationException(cli, exception);
+		}
+	}
+
+	private void handleInvocationException(Cli cli, InvocationTargetException exception) throws InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException
+	{
+		Method exceptionHandler = cli.getExceptionHandler();
+
+		if (exceptionHandler != null)
+			instanciateClassAndInvokeMethod(exceptionHandler, exception.getTargetException());
+		else
+			throw exception;
+	}
+
+	private void instanciateClassAndInvokeMethod(Method method, Object... arguments) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException
+	{
+		Class<?> clazz = method.getDeclaringClass();
+		Object instance = clazz.getConstructor().newInstance();
+
+		method.invoke(instance, arguments);
 	}
 
 	private List<Object> convertArguments(Class<?>[] parameterTypes, List<String> commandArguments)

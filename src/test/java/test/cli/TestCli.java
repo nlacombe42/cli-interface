@@ -12,4 +12,7 @@ public interface TestCli
 	@CommandMapping(description = "Adds 2 numbers")
 	void add(@ParameterMapping("number1") Integer number1,
 			 @ParameterMapping("number2") Double number2);
+
+	@CommandMapping
+	void boom();
 }

@@ -1,16 +1,24 @@
 package test;
 
-import org.junit.Test;
 import net.nlacombe.jcli.impl.Jcli;
+import org.junit.Test;
 
 public class JCliTest
 {
 	@Test
-	public void test()
+	public void add()
 	{
-		String[] arguments = "add 1 3".split(" ");
+		test("add 1 2.5");
+	}
 
-		Jcli cli = new Jcli();
-		cli.run("test.cli", arguments);
+	@Test
+	public void exceptionHandler()
+	{
+		test("boom");
+	}
+
+	private void test(String arguments)
+	{
+		new Jcli().run("test.cli", arguments.split(" "));
 	}
 }

@@ -1,5 +1,6 @@
 package test.cli;
 
+import net.nlacombe.jcli.api.CliExceptionHandler;
 import net.nlacombe.jcli.api.CliMapping;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,5 +20,17 @@ public class TestCliImpl implements TestCli
 	public void add(Integer number1, Double number2)
 	{
 		logger.info("add: " + (number1 + number2));
+	}
+
+	@Override
+	public void boom()
+	{
+		throw new RuntimeException("BOOM!");
+	}
+
+	@CliExceptionHandler
+	public void handleException(Throwable throwable)
+	{
+		logger.error("Error occurred running command: " + throwable.getMessage());
 	}
 }

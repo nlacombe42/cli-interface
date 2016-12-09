@@ -1,6 +1,7 @@
 package net.nlacombe.jcli.impl;
 
 import io.github.lukehutch.fastclasspathscanner.FastClasspathScanner;
+import net.nlacombe.jcli.api.CliExceptionHandler;
 import net.nlacombe.jcli.api.CliMapping;
 import net.nlacombe.jcli.api.CommandMapping;
 import net.nlacombe.jcli.impl.domain.Cli;
@@ -22,6 +23,8 @@ public class CommandScanner
 
 		FastClasspathScanner classpathScanner = new FastClasspathScanner(basePackage);
 		classpathScanner.matchClassesWithAnnotation(CliMapping.class, cliMappingClass -> addCommandsToCli(cli, cliMappingClass)).scan();
+		classpathScanner.matchClassesWithMethodAnnotation(CliExceptionHandler.class,
+				(clazz, cliExceptionHandlerMethod) -> cli.setExceptionHandler(cliExceptionHandlerMethod)).scan();
 
 		return cli;
 	}
