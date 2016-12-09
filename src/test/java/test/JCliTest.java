@@ -8,7 +8,7 @@ public class JCliTest
 	@Test
 	public void test()
 	{
-		String[] arguments = "ee D".split(" ");
+		String[] arguments = "add 1 3".split(" ");
 
 		Jcli cli = new Jcli();
 		cli.run("test.cli", arguments);

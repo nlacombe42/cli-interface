@@ -10,6 +10,6 @@ public interface TestCli
 			  @ParameterMapping(value = "pass", description = "password") String pass);
 
 	@CommandMapping(description = "Adds 2 numbers")
-	void add(@ParameterMapping("number1") String number1,
-			  @ParameterMapping("number2") String number2);
+	void add(@ParameterMapping("number1") Integer number1,
+			 @ParameterMapping("number2") Double number2);
 }

@@ -7,6 +7,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Method;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.List;
 
 public class CommandExecuter
@@ -60,13 +63,41 @@ public class CommandExecuter
 		{
 			Class<?> cliClass = commandMethod.getDeclaringClass();
 			Object cliClassInstance = cliClass.getConstructor().newInstance();
+			List<Object> convertedArguments = convertArguments(commandMethod.getParameterTypes(), commandArguments);
 
-			commandMethod.invoke(cliClassInstance, commandArguments.toArray());
+			commandMethod.invoke(cliClassInstance, convertedArguments.toArray());
 		}
 		catch (Exception e)
 		{
 			throw new RuntimeException("Error: unknown error executing command.", e);
 		}
+	}
+
+	private List<Object> convertArguments(Class<?>[] parameterTypes, List<String> commandArguments)
+	{
+		List<Object> convertedArguments = new ArrayList<>(commandArguments.size());
+
+		for (Integer i = 0; i < commandArguments.size(); i++)
+		{
+			Class<?> parameterType = parameterTypes[i];
+			String argument = commandArguments.get(i);
+
+			convertedArguments.add(convertArgument(parameterType, argument));
+		}
+
+		return convertedArguments;
+	}
+
+	private Object convertArgument(Class<?> parameterType, String argument)
+	{
+		if (parameterType.equals(Integer.class))
+			return new Integer(argument);
+		else if (parameterType.equals(Double.class))
+			return new Double(argument);
+		else if (parameterType.equals(Path.class))
+			return Paths.get(argument);
+		else
+			return argument;
 	}
 
 	private void validateEqualNumberOfArgumentAndParameter(Command command, Integer numberOfArguments, Integer numberOfParameters)

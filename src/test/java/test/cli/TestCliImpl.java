@@ -1,7 +1,6 @@
 package test.cli;
 
 import net.nlacombe.jcli.api.CliMapping;
-import net.nlacombe.jcli.api.ParameterMapping;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,8 +16,8 @@ public class TestCliImpl implements TestCli
 	}
 
 	@Override
-	public void add(@ParameterMapping("number1") String number1, @ParameterMapping("number2") String number2)
+	public void add(Integer number1, Double number2)
 	{
-		logger.info("add");
+		logger.info("add: " + (number1 + number2));
 	}
 }
