@@ -120,9 +120,9 @@ public class CommandExecuter
 	private Object convertArgument(Class<?> parameterType, String argument)
 	{
 		if (parameterType.equals(Integer.class))
-			return new Integer(argument);
+			return Integer.valueOf(argument);
 		else if (parameterType.equals(Double.class))
-			return new Double(argument);
+			return Double.valueOf(argument);
 		else if (parameterType.equals(Path.class))
 			return Paths.get(argument);
 		else

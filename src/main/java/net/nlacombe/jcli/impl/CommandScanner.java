@@ -24,7 +24,7 @@ public class CommandScanner
 		FastClasspathScanner classpathScanner = new FastClasspathScanner(basePackage);
 		classpathScanner.matchClassesWithAnnotation(CliMapping.class, cliMappingClass -> addCommandsToCli(cli, cliMappingClass)).scan();
 		classpathScanner.matchClassesWithMethodAnnotation(CliExceptionHandler.class,
-				(clazz, cliExceptionHandlerMethod) -> cli.setExceptionHandler(cliExceptionHandlerMethod)).scan();
+				(clazz, cliExceptionHandlerMethod) -> cli.setExceptionHandler((Method) cliExceptionHandlerMethod)).scan();
 
 		return cli;
 	}

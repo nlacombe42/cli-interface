@@ -4,19 +4,19 @@ apply plugin: 'maven'
 defaultTasks 'tasks'
 
 group = 'net.nlacombe'
-version = '0.4.0'
+version = '1.0.0'
 
-sourceCompatibility = 1.8
-targetCompatibility = 1.8
+sourceCompatibility = 9
+targetCompatibility = 9
 
 dependencies {
-	compile 'io.github.lukehutch:fast-classpath-scanner:2.0.9'
-	compile 'org.apache.commons:commons-lang3:3.5'
+	compile 'io.github.lukehutch:fast-classpath-scanner:2.7.0'
+	compile 'org.apache.commons:commons-lang3:3.6'
 	compile 'org.apache.commons:commons-collections4:4.1'
-	compile 'org.slf4j:slf4j-api:1.7.21'
+	compile 'org.slf4j:slf4j-api:1.7.25'
 
 	testCompile 'junit:junit:4.12'
-	testRuntime 'ch.qos.logback:logback-classic:1.1.7'
+	testRuntime 'ch.qos.logback:logback-classic:1.2.3'
 }
 
 repositories {
@@ -50,5 +50,5 @@ artifacts {
 }
 
 task wrapper(type: Wrapper) {
-	gradleVersion = '3.2.1'
+	gradleVersion = '4.2'
 }
