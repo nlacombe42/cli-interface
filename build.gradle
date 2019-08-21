@@ -4,10 +4,10 @@ apply plugin: 'maven'
 defaultTasks 'tasks'
 
 group = 'net.nlacombe'
-version = '1.0.0'
+version = '2.0.0'
 
-sourceCompatibility = 9
-targetCompatibility = 9
+sourceCompatibility = 11
+targetCompatibility = 11
 
 dependencies {
 	compile 'io.github.lukehutch:fast-classpath-scanner:2.7.0'
@@ -49,6 +49,6 @@ artifacts {
 	archives javadocJar
 }
 
-task wrapper(type: Wrapper) {
-	gradleVersion = '4.2'
+wrapper {
+	gradleVersion = '4.9'
 }
